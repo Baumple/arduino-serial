@@ -2,8 +2,15 @@ compile:
 	arduino-cli compile --fqbn arduino:avr:uno serial
 
 flash: compile
-	arduino-cli upload --fqbn arduino:avr:uno -p /dev/ttyACM1 serial
+	arduino-cli upload --fqbn arduino:avr:uno -p ${ARDUINO_PORT} serial
 
 
 monitor:
-	arduino-cli monitor --fqbn arduino:avr:uno -p /dev/ttyACM1  -c baudrate=9600
+	arduino-cli monitor --fqbn arduino:avr:uno -p ${ARDUINO_PORT}  -c baudrate=9600
+
+flashmon: flash monitor
+
+run:
+	cd ./enispenis/ && make run
+
+all: flash run

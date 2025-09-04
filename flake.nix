@@ -11,7 +11,6 @@
         buildInputs = with pkgs; [
           arduino-cli
           man-pages
-          gradle
           jdk
         ];
       };
