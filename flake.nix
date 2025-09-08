@@ -12,6 +12,7 @@
           arduino-cli
           man-pages
           jdk
+          jdt-language-server
         ];
       };
     }

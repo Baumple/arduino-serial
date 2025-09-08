@@ -1,9 +1,11 @@
 import com.fazecast.jSerialComm.*;
+
 import java.nio.charset.StandardCharsets;
 
 import java.util.Scanner;
 
 public class Main {
+
     private static final byte HEADER = 0x02;
 
     private static byte readByte(SerialPort port) {
@@ -15,20 +17,31 @@ public class Main {
     /// Blocks until it receives the header byte
     private static void awaitHeader(SerialPort port) {
         var header = new byte[] { 0 };
-        do { port.readBytes(header, 1); } while (header[0] != HEADER);
+        do {
+            port.readBytes(header, 1);
+        } while (header[0] != HEADER);
+    }
+
+    private static void awaitOk(SerialPort port) {
+        while (true) {
+            var msg = readMessage(port);
+            if (msg != null && msg.equals("OK"))
+                return;
+        }
     }
 
     private static void sendMessage(SerialPort port, String msg) {
         var bytes = msg.getBytes();
         var len = (byte) msg.length();
-        System.out.printf("len: %d\n", len);
+
         var header = new byte[] { 0x02, len };
         port.writeBytes(header, 1);
         port.writeBytes(bytes, len);
+
+        awaitOk(port);
     }
 
     private static String readMessage(SerialPort port) {
-        while(port.bytesAvailable() <= 0);
         awaitHeader(port);
 
         byte len = readByte(port);
@@ -38,13 +51,15 @@ public class Main {
         if (nBytes != len) {
             return null;
         }
+
         return new String(buf, StandardCharsets.US_ASCII);
     }
 
     private static void awaitReady(SerialPort port) {
         while (true) {
             var msg = readMessage(port);
-            if (msg != null && msg.equals("READY")) break;
+            if (msg != null && msg.equals("READY"))
+                break;
         }
         System.out.println("Received READY");
     }
@@ -66,15 +81,28 @@ public class Main {
 
         var arduinoPort = SerialPort.getCommPort(portString);
         setupConnection(arduinoPort);
+        if (args.length > 1 && args[1].equals("repl"))
+            repl(arduinoPort);
+
         try {
             arduinoPort.openPort();
             awaitReady(arduinoPort);
-            sendMessage(arduinoPort, "READY");
-            awaitReady(arduinoPort);
+            sendMessage(arduinoPort, "HELLO");
+            var msg = readMessage(arduinoPort);
+            System.out.println(msg);
         } catch (Exception e) {
             System.out.println("Error: " + e);
         } finally {
             arduinoPort.closePort();
+        }
+    }
+
+    private static void repl(SerialPort port) {
+        var scanner = new Scanner(System.in);
+
+        while (true) {
+            var line = scanner.nextLine().trim();
+            sendMessage(port, msg);
         }
     }
 }

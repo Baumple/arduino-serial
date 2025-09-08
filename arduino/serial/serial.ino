@@ -5,50 +5,34 @@
 
 #define DEFAULT_DELAY 50
 
-void blinkTimes(int times) {
-    digitalWrite(RED_LED, HIGH);
-    for (int i = 0; i < times; i++) {
-        digitalWrite(GREEN_LED, HIGH);
-        delay(1000);
-        digitalWrite(GREEN_LED, LOW);
-        delay(1000);
-    }
-    digitalWrite(RED_LED, LOW);
-    digitalWrite(GREEN_LED, LOW);
+/// Waits until at least two bytes are available to read (HEADER, LEN)
+/// Then allocates appropriate amount of memory and reads the incoming bytes
+/// when there is LEN bytes available.
+///
+/// When reading is finished it sends back 'OK' to indicate that the message was
+/// read successfully.
+char* readMessage() {
+    // we need at least the header and the len of the package
+    while (Serial.available() < 2 
+        && Serial.read() != 0x02);
+
+    int len = Serial.read();
+    // wait until len bytes are available to read
+    while (Serial.available() < len);
+
+    char* buffer = malloc(len + 1);
+    int nBytes = Serial.readBytes(buffer, len);
+    buffer[len] = '\0';
+
+    sendMessage("OK");
+    return buffer;
 }
 
-void sendMessage(char* msg) {
+bool sendMessage(char* msg) {
     byte len = strlen(msg);
     Serial.write(0x02);
     Serial.write(len);
     Serial.print(msg);
-}
-
-void sendInvalidMessage(char* msg) {
-    int len = strlen(msg) - 1;
-    Serial.write(0x02);
-    Serial.write(len);
-    Serial.print(msg);
-}
-
-char* readMessage() {
-    while (Serial.available() == 0);
-    while (Serial.read() != 0x02);
-
-    int len = Serial.read();
-    char* buffer = malloc(len);
-    int nBytes = Serial.readBytes(buffer, len);
-
-    if (nBytes != len) return NULL;
-    else return buffer;
-}
-
-bool awaitReady() {
-    char* msg = readMessage();
-
-    blinkTimes(25);
-
-    return strcmp(msg, "READY") == 0;
 }
 
 void setup() {
@@ -57,8 +41,11 @@ void setup() {
     pinMode(GREEN_LED, OUTPUT);
 
     sendMessage("READY");
-    while (!awaitReady());
 }
 
 void loop() {
+    char* msg = readMessage();
+    if (strcmp(msg, "RED") == 0) {
+      digitalWrite(RED_LED, HIGH);
+    }
 }
