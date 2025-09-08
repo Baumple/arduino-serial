@@ -11,6 +11,6 @@ monitor:
 flashmon: flash monitor
 
 run:
-	cd ./enispenis/ && make run
+	cd ../pc/ && make run
 
 all: flash run

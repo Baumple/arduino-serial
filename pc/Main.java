@@ -1,6 +1,8 @@
 import com.fazecast.jSerialComm.*;
 import java.nio.charset.StandardCharsets;
 
+import java.util.Scanner;
+
 public class Main {
     private static final byte HEADER = 0x02;
 
@@ -19,7 +21,9 @@ public class Main {
     private static void sendMessage(SerialPort port, String msg) {
         var bytes = msg.getBytes();
         var len = (byte) msg.length();
-        port.writeBytes(new byte[] { 0x02, len }, 2);
+        System.out.printf("len: %d\n", len);
+        var header = new byte[] { 0x02, len };
+        port.writeBytes(header, 1);
         port.writeBytes(bytes, len);
     }
 
@@ -62,20 +66,15 @@ public class Main {
 
         var arduinoPort = SerialPort.getCommPort(portString);
         setupConnection(arduinoPort);
-        arduinoPort.openPort();
-
         try {
+            arduinoPort.openPort();
             awaitReady(arduinoPort);
             sendMessage(arduinoPort, "READY");
-            System.out.println("Sent ready");
-
-            var msg = readMessage(arduinoPort);
-            System.out.println(msg);
-
+            awaitReady(arduinoPort);
         } catch (Exception e) {
             System.out.println("Error: " + e);
-            //TODO: handle exception
+        } finally {
+            arduinoPort.closePort();
         }
-        arduinoPort.closePort();
     }
 }

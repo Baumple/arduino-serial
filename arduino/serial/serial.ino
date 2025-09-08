@@ -5,6 +5,18 @@
 
 #define DEFAULT_DELAY 50
 
+void blinkTimes(int times) {
+    digitalWrite(RED_LED, HIGH);
+    for (int i = 0; i < times; i++) {
+        digitalWrite(GREEN_LED, HIGH);
+        delay(1000);
+        digitalWrite(GREEN_LED, LOW);
+        delay(1000);
+    }
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(GREEN_LED, LOW);
+}
+
 void sendMessage(char* msg) {
     byte len = strlen(msg);
     Serial.write(0x02);
@@ -31,14 +43,11 @@ char* readMessage() {
     else return buffer;
 }
 
-void blink(int led, int dl) {
-    digitalWrite(led, HIGH);
-    delay(dl);
-    digitalWrite(led, LOW);
-}
-
 bool awaitReady() {
     char* msg = readMessage();
+
+    blinkTimes(25);
+
     return strcmp(msg, "READY") == 0;
 }
 
@@ -47,25 +56,9 @@ void setup() {
     pinMode(RED_LED, OUTPUT);
     pinMode(GREEN_LED, OUTPUT);
 
-    digitalWrite(RED_LED, LOW);
-    digitalWrite(GREEN_LED, LOW);
-
     sendMessage("READY");
-    while(!awaitReady());
-
-    digitalWrite(GREEN_LED, HIGH);
-    delay(100);
-    digitalWrite(GREEN_LED, LOW);
+    while (!awaitReady());
 }
 
 void loop() {
-    delay(100);
-    // char* msg = readMessage();
-    // if (strcmp(msg, "A") == 0) {
-    //     digitalWrite(RED_LED, HIGH);
-    //     sendMessage("OK");
-    // } else {
-    //     blink(RED_LED, 100);
-    // }
-    // free(msg);
 }
