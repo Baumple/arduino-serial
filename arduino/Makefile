@@ -11,6 +11,6 @@ monitor:
 flashmon: flash monitor
 
 run:
-	cd ../pc/ && make run
+	cd ../java/ && make run
 
 all: flash run

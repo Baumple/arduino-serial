@@ -4,3 +4,5 @@ compile:
 run: compile
 	java -cp .:libs/jSerialComm.jar Main
 
+repl: compile
+	java -cp .:libs/jSerialComm.jar Main repl
